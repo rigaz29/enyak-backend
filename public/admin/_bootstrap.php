@@ -7,12 +7,37 @@ require __DIR__ . '/../../src/bootstrap.php';
 use Enyak\Db;
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
+    // Keep admin sessions in an app-private dir so neighbour vhosts' GC can't expire them early.
+    $sessDir = __DIR__ . '/../../storage/sessions';
+    if (!is_dir($sessDir)) {
+        @mkdir($sessDir, 0700, true);
+    }
+    if (is_dir($sessDir) && is_writable($sessDir)) {
+        session_save_path($sessDir);
+    }
+    $secure = (($_SERVER['HTTPS'] ?? '') !== '' && $_SERVER['HTTPS'] !== 'off');
+    $remember = (($_COOKIE['enyak_remember'] ?? '') === '1');
+    // 30 days when "remember me" is on, otherwise 4 hours (fixes the too-fast logout).
+    $lifetime = $remember ? 60 * 60 * 24 * 30 : 60 * 60 * 4;
+    @ini_set('session.gc_maxlifetime', (string) $lifetime);
     session_set_cookie_params([
+        'lifetime' => $remember ? $lifetime : 0,
+        'path' => '/',
         'httponly' => true,
         'samesite' => 'Lax',
-        'secure' => (($_SERVER['HTTPS'] ?? '') !== '' && $_SERVER['HTTPS'] !== 'off'),
+        'secure' => $secure,
     ]);
     session_start();
+    // Sliding expiry: refresh the cookie on activity so a remembered session stays alive.
+    if ($remember) {
+        setcookie(session_name(), session_id(), [
+            'expires' => time() + $lifetime,
+            'path' => '/',
+            'httponly' => true,
+            'samesite' => 'Lax',
+            'secure' => $secure,
+        ]);
+    }
 }
 
 // Basic security headers for every admin page.

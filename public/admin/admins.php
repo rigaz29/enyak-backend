@@ -52,8 +52,9 @@ $csrf = csrfToken();
   </form>
 </div>
 
+<div class="card"><input type="search" data-filter="#tbl-admins" placeholder="Cari admin…" style="max-width:260px"></div>
 <div class="table-wrap">
-  <table>
+  <table id="tbl-admins">
     <thead><tr><th>Email</th><th>Role</th><th>Dibuat</th><th style="width:120px">Aksi</th></tr></thead>
     <tbody>
       <?php foreach ($rows as $r): ?>

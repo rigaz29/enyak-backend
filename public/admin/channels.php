@@ -130,8 +130,8 @@ $csrf = csrfToken();
 ?>
 <div class="card">
   <div class="row-inline" style="justify-content:space-between">
-    <form class="row-inline" method="get" style="flex:1">
-      <input name="q" value="<?= h($q) ?>" placeholder="Cari nama / kategori…" style="max-width:240px">
+    <form class="row-inline" method="get" data-autosubmit style="flex:1">
+      <input type="search" name="q" value="<?= h($q) ?>" data-autofocus placeholder="Cari nama / kategori…" style="max-width:240px">
       <select name="cat" style="max-width:170px">
         <option value="">Semua kategori</option>
         <?php foreach ($cats as $c): ?>
@@ -148,7 +148,7 @@ $csrf = csrfToken();
         <option value="free" <?= $premium === 'free' ? 'selected' : '' ?>>Free</option>
         <option value="paid" <?= $premium === 'paid' ? 'selected' : '' ?>>Premium</option>
       </select>
-      <button class="btn-ghost"><i data-lucide="search"></i> Filter</button>
+      <noscript><button class="btn-ghost">Filter</button></noscript>
     </form>
     <div class="row-inline">
       <a href="channel_edit.php"><button><i data-lucide="plus"></i> Tambah</button></a>

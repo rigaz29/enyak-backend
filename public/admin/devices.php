@@ -84,8 +84,8 @@ $csrf = csrfToken();
 ?>
 <div class="card">
   <div class="row-inline" style="justify-content:space-between">
-    <form class="row-inline" method="get" style="flex:1">
-      <input name="q" value="<?= h($q) ?>" placeholder="Cari Device ID…" style="max-width:240px">
+    <form class="row-inline" method="get" data-autosubmit style="flex:1">
+      <input type="search" name="q" value="<?= h($q) ?>" data-autofocus placeholder="Cari Device ID…" style="max-width:240px">
       <select name="status" style="max-width:150px">
         <option value="">Semua status</option>
         <?php foreach (['premium' => 'Premium', 'trial' => 'Trial', 'free' => 'Free', 'banned' => 'Banned'] as $k => $lbl): ?>
@@ -94,7 +94,7 @@ $csrf = csrfToken();
       </select>
       <label class="muted">Terdaftar dari</label>
       <input type="date" name="from" value="<?= h($from) ?>" style="max-width:160px">
-      <button class="btn-ghost"><i data-lucide="search"></i> Filter</button>
+      <noscript><button class="btn-ghost">Filter</button></noscript>
     </form>
     <a href="<?= h(devLink(['export' => 'csv', 'page' => ''])) ?>"><button class="btn-ghost"><i data-lucide="download"></i> Export CSV</button></a>
   </div>

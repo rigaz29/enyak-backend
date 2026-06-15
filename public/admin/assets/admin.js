@@ -28,4 +28,34 @@ document.addEventListener('DOMContentLoaded', function () {
       setTimeout(function () { t.remove(); }, 320);
     }, 3500);
   });
+
+  // Live filter forms (no Filter button): debounce text inputs, submit selects/date instantly.
+  document.querySelectorAll('form[data-autosubmit]').forEach(function (form) {
+    var timer;
+    form.querySelectorAll('input[type="search"], input[type="text"]').forEach(function (inp) {
+      inp.addEventListener('input', function () {
+        clearTimeout(timer);
+        timer = setTimeout(function () { form.submit(); }, 400);
+      });
+    });
+    form.querySelectorAll('select, input[type="date"]').forEach(function (el) {
+      el.addEventListener('change', function () { form.submit(); });
+    });
+  });
+
+  // After a reload, put the caret back at the end of the focused search box.
+  var af = document.querySelector('input[data-autofocus]');
+  if (af) { var v = af.value; af.focus(); af.value = ''; af.value = v; }
+
+  // Instant client-side row filter: <input data-filter="#tableId">.
+  document.querySelectorAll('input[data-filter]').forEach(function (inp) {
+    inp.addEventListener('input', function () {
+      var table = document.querySelector(inp.getAttribute('data-filter'));
+      if (!table) return;
+      var q = inp.value.trim().toLowerCase();
+      table.querySelectorAll('tbody tr').forEach(function (tr) {
+        tr.style.display = (q === '' || tr.textContent.toLowerCase().indexOf(q) !== -1) ? '' : 'none';
+      });
+    });
+  });
 });
