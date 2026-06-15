@@ -75,4 +75,17 @@ function query(string $key, $default = null)
     return $_GET[$key] ?? $default;
 }
 
+/** Set a one-shot flash message (rendered as a toast after the next redirect). */
+function flash(string $msg, string $type = 'success'): void
+{
+    $_SESSION['flash'] = ['msg' => $msg, 'type' => $type];
+}
+
+function takeFlash(): ?array
+{
+    $f = $_SESSION['flash'] ?? null;
+    unset($_SESSION['flash']);
+    return $f;
+}
+
 require __DIR__ . '/_layout.php';
