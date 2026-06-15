@@ -1,0 +1,10 @@
+# Route everything to the front controller (Apache / shared hosting).
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [QSA,L]
+
+# Never serve the real config or source if docroot is misconfigured.
+<FilesMatch "\.(sql|md)$">
+    Require all denied
+</FilesMatch>
