@@ -19,9 +19,9 @@ function layout_head(string $title): void
 <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('enyak_theme') || 'dark');</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/admin.css">
+<link rel="stylesheet" href="assets/admin.css?v=<?= @filemtime(__DIR__ . '/assets/admin.css') ?: '1' ?>">
 <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-<script defer src="assets/admin.js"></script>
+<script defer src="assets/admin.js?v=<?= @filemtime(__DIR__ . '/assets/admin.js') ?: '1' ?>"></script>
 <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
     <?php
