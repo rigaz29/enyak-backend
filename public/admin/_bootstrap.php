@@ -88,4 +88,57 @@ function takeFlash(): ?array
     return $f;
 }
 
+/** Compute display status from a device row. */
+function deviceStatus(array $d): string
+{
+    if (($d['status'] ?? 'active') === 'banned') return 'banned';
+    $now = time();
+    if (!empty($d['subscription_expires_at']) && strtotime($d['subscription_expires_at']) > $now) return 'premium';
+    if (!empty($d['trial_expires_at']) && strtotime($d['trial_expires_at']) > $now) return 'trial';
+    return 'free';
+}
+
+function deviceStatusColor(string $s): string
+{
+    return ['banned' => '#c0392b', 'premium' => '#2e7d32', 'trial' => '#f59e0b', 'free' => '#616161'][$s] ?? '#616161';
+}
+
+function logActivation(\PDO $pdo, int $deviceId, string $action, ?string $old, ?string $new): void
+{
+    $a = currentAdmin();
+    $pdo->prepare(
+        'INSERT INTO activation_logs (device_id, admin_id, action, old_expiry, new_expiry) VALUES (?,?,?,?,?)',
+    )->execute([$deviceId, $a['id'] ?? null, $action, $old, $new]);
+}
+
+/** Shared device action handler (used by devices list + detail). Sets a flash message. */
+function applyDeviceAction(\PDO $pdo, int $id, string $action, int $days = 30): void
+{
+    $st = $pdo->prepare('SELECT * FROM devices WHERE id = ?');
+    $st->execute([$id]);
+    $d = $st->fetch();
+    if (!$d) return;
+
+    if ($action === 'extend') {
+        $active = !empty($d['subscription_expires_at']) && strtotime($d['subscription_expires_at']) > time();
+        $base = $active ? strtotime($d['subscription_expires_at']) : time();
+        $new = date('Y-m-d H:i:s', $base + max(1, $days) * 86400);
+        $pdo->prepare('UPDATE devices SET subscription_expires_at = ?, status = "active" WHERE id = ?')->execute([$new, $id]);
+        logActivation($pdo, $id, 'extend', $d['subscription_expires_at'], $new);
+        flash('Langganan diperpanjang sampai ' . $new . '.');
+    } elseif ($action === 'revoke') {
+        $pdo->prepare('UPDATE devices SET subscription_expires_at = NULL WHERE id = ?')->execute([$id]);
+        logActivation($pdo, $id, 'revoke', $d['subscription_expires_at'], null);
+        flash('Langganan dicabut.');
+    } elseif ($action === 'ban') {
+        $pdo->prepare('UPDATE devices SET status = "banned" WHERE id = ?')->execute([$id]);
+        logActivation($pdo, $id, 'ban', null, null);
+        flash('Device diblokir.');
+    } elseif ($action === 'unban') {
+        $pdo->prepare('UPDATE devices SET status = "active" WHERE id = ?')->execute([$id]);
+        logActivation($pdo, $id, 'unban', null, null);
+        flash('Device diaktifkan kembali.');
+    }
+}
+
 require __DIR__ . '/_layout.php';

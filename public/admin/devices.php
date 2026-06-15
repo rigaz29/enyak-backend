@@ -5,95 +5,144 @@ require __DIR__ . '/_bootstrap.php';
 requireAdmin();
 $pdo = pdo();
 
-function logAction(\PDO $pdo, int $deviceId, string $action, ?string $old, ?string $new): void
-{
-    $admin = currentAdmin();
-    $pdo->prepare(
-        'INSERT INTO activation_logs (device_id, admin_id, action, old_expiry, new_expiry) VALUES (?,?,?,?,?)',
-    )->execute([$deviceId, $admin['id'] ?? null, $action, $old, $new]);
+/* ---------- Filters ---------- */
+$q = trim((string) query('q'));
+$status = (string) query('status');   // premium|trial|free|banned
+$from = trim((string) query('from')); // created_at >= date (YYYY-MM-DD)
+
+$where = [];
+$args = [];
+if ($q !== '') { $where[] = 'device_id LIKE ?'; $args[] = "%$q%"; }
+if ($from !== '') { $where[] = 'created_at >= ?'; $args[] = $from . ' 00:00:00'; }
+switch ($status) {
+    case 'banned': $where[] = 'status = "banned"'; break;
+    case 'premium': $where[] = 'status <> "banned" AND subscription_expires_at IS NOT NULL AND subscription_expires_at > NOW()'; break;
+    case 'trial': $where[] = 'status <> "banned" AND (subscription_expires_at IS NULL OR subscription_expires_at <= NOW()) AND trial_expires_at IS NOT NULL AND trial_expires_at > NOW()'; break;
+    case 'free': $where[] = 'status <> "banned" AND (subscription_expires_at IS NULL OR subscription_expires_at <= NOW()) AND (trial_expires_at IS NULL OR trial_expires_at <= NOW())'; break;
+}
+$wsql = $where ? ('WHERE ' . implode(' AND ', $where)) : '';
+
+/* ---------- Export CSV (filtered) ---------- */
+if (query('export') === 'csv') {
+    $st = $pdo->prepare("SELECT * FROM devices $wsql ORDER BY last_seen DESC");
+    $st->execute($args);
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="enyak-devices.csv"');
+    $out = fopen('php://output', 'w');
+    fputcsv($out, ['device_id', 'status', 'trial_expires_at', 'subscription_expires_at', 'last_seen', 'created_at', 'note_admin']);
+    foreach ($st as $r) {
+        fputcsv($out, [
+            $r['device_id'], deviceStatus($r), $r['trial_expires_at'], $r['subscription_expires_at'],
+            $r['last_seen'], $r['created_at'], $r['note_admin'],
+        ]);
+    }
+    fclose($out);
+    exit;
 }
 
+/* ---------- Actions ---------- */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     checkCsrf();
-    $id = (int) post('id');
-    $action = (string) post('action');
-    $st = $pdo->prepare('SELECT * FROM devices WHERE id = ?');
-    $st->execute([$id]);
-    $d = $st->fetch();
-    if ($d) {
-        if ($action === 'extend') {
-            $days = max(1, (int) post('days'));
-            $hasActiveSub = !empty($d['subscription_expires_at']) && strtotime($d['subscription_expires_at']) > time();
-            $base = $hasActiveSub ? strtotime($d['subscription_expires_at']) : time();
-            $new = date('Y-m-d H:i:s', $base + $days * 86400);
-            $pdo->prepare('UPDATE devices SET subscription_expires_at = ?, status = "active" WHERE id = ?')
-                ->execute([$new, $id]);
-            logAction($pdo, $id, 'extend', $d['subscription_expires_at'], $new);
-        } elseif ($action === 'revoke') {
-            $pdo->prepare('UPDATE devices SET subscription_expires_at = NULL WHERE id = ?')->execute([$id]);
-            logAction($pdo, $id, 'revoke', $d['subscription_expires_at'], null);
-        } elseif ($action === 'ban') {
-            $pdo->prepare('UPDATE devices SET status = "banned" WHERE id = ?')->execute([$id]);
-            logAction($pdo, $id, 'ban', null, null);
-        } elseif ($action === 'unban') {
-            $pdo->prepare('UPDATE devices SET status = "active" WHERE id = ?')->execute([$id]);
-            logAction($pdo, $id, 'unban', null, null);
-        }
-    }
-    redirect('devices.php' . (post('q') ? '?q=' . urlencode((string) post('q')) : ''));
+    applyDeviceAction($pdo, (int) post('id'), (string) post('action'), (int) post('days'));
+    redirect('devices.php' . devBackQuery());
 }
 
-$q = trim((string) query('q'));
-if ($q !== '') {
-    $st = $pdo->prepare('SELECT * FROM devices WHERE device_id LIKE ? ORDER BY last_seen DESC LIMIT 200');
-    $st->execute(['%' . $q . '%']);
-    $rows = $st->fetchAll();
-} else {
-    $rows = $pdo->query('SELECT * FROM devices ORDER BY last_seen DESC LIMIT 200')->fetchAll();
+/* ---------- Pagination ---------- */
+$perPage = 25;
+$page = max(1, (int) query('page', 1));
+$cs = $pdo->prepare("SELECT COUNT(*) FROM devices $wsql");
+$cs->execute($args);
+$total = (int) $cs->fetchColumn();
+$pages = max(1, (int) ceil($total / $perPage));
+$page = min($page, $pages);
+$offset = ($page - 1) * $perPage;
+$ls = $pdo->prepare("SELECT * FROM devices $wsql ORDER BY last_seen DESC LIMIT $perPage OFFSET $offset");
+$ls->execute($args);
+$rows = $ls->fetchAll();
+
+function devBackQuery(): string
+{
+    $keep = array_filter([
+        'q' => $_POST['q'] ?? $_GET['q'] ?? '',
+        'status' => $_POST['status'] ?? $_GET['status'] ?? '',
+        'from' => $_POST['from'] ?? $_GET['from'] ?? '',
+        'page' => $_POST['page'] ?? $_GET['page'] ?? '',
+    ], fn($v) => $v !== '');
+    return $keep ? ('?' . http_build_query($keep)) : '';
+}
+function devLink(array $over): string
+{
+    $m = array_filter(array_merge(
+        ['q' => $GLOBALS['q'], 'status' => $GLOBALS['status'], 'from' => $GLOBALS['from'], 'page' => $GLOBALS['page']],
+        $over,
+    ), fn($v) => $v !== '' && $v !== null);
+    return 'devices.php?' . http_build_query($m);
 }
 
 layout_header('Devices');
 $csrf = csrfToken();
-$now = time();
 ?>
 <div class="card">
-  <form method="get">
-    <input name="q" value="<?= h($q) ?>" placeholder="cari Device ID..." style="width:320px">
-    <button>Cari</button>
-  </form>
+  <div class="row-inline" style="justify-content:space-between">
+    <form class="row-inline" method="get" style="flex:1">
+      <input name="q" value="<?= h($q) ?>" placeholder="Cari Device ID…" style="max-width:240px">
+      <select name="status" style="max-width:150px">
+        <option value="">Semua status</option>
+        <?php foreach (['premium' => 'Premium', 'trial' => 'Trial', 'free' => 'Free', 'banned' => 'Banned'] as $k => $lbl): ?>
+          <option value="<?= $k ?>" <?= $status === $k ? 'selected' : '' ?>><?= $lbl ?></option>
+        <?php endforeach; ?>
+      </select>
+      <label class="muted">Terdaftar dari</label>
+      <input type="date" name="from" value="<?= h($from) ?>" style="max-width:160px">
+      <button class="btn-ghost"><i data-lucide="search"></i> Filter</button>
+    </form>
+    <a href="<?= h(devLink(['export' => 'csv', 'page' => ''])) ?>"><button class="btn-ghost"><i data-lucide="download"></i> Export CSV</button></a>
+  </div>
 </div>
-<table>
-  <tr><th>Device ID</th><th>Status</th><th>Trial s/d</th><th>Langganan s/d</th><th>Terakhir aktif</th><th>Aksi</th></tr>
-  <?php foreach ($rows as $r):
-      $sub = !empty($r['subscription_expires_at']) ? strtotime($r['subscription_expires_at']) : 0;
-      $trial = !empty($r['trial_expires_at']) ? strtotime($r['trial_expires_at']) : 0;
-      $status = $r['status'] === 'banned' ? 'banned' : ($sub > $now ? 'premium' : ($trial > $now ? 'trial' : 'free'));
-      $color = ['banned' => '#c0392b', 'premium' => '#2e7d32', 'trial' => '#f9a825', 'free' => '#616161'][$status];
-  ?>
-  <tr>
-    <td style="font-family:monospace"><?= h($r['device_id']) ?></td>
-    <td><span class="pill" style="background:<?= $color ?>"><?= $status ?></span></td>
-    <td class="muted"><?= h($r['trial_expires_at'] ?? '-') ?></td>
-    <td class="muted"><?= h($r['subscription_expires_at'] ?? '-') ?></td>
-    <td class="muted"><?= h($r['last_seen'] ?? '-') ?></td>
-    <td>
-      <form class="inline" method="post">
-        <input type="hidden" name="csrf" value="<?= $csrf ?>">
-        <input type="hidden" name="id" value="<?= (int) $r['id'] ?>">
-        <input type="hidden" name="q" value="<?= h($q) ?>">
-        <input type="number" name="days" value="30" min="1" style="width:64px"> hari
-        <button name="action" value="extend">Aktifkan / Perpanjang</button>
-        <button name="action" value="revoke" class="btn-danger">Cabut</button>
-        <?php if ($r['status'] === 'banned'): ?>
-          <button name="action" value="unban">Unban</button>
-        <?php else: ?>
-          <button name="action" value="ban" class="btn-danger">Ban</button>
-        <?php endif; ?>
-      </form>
-    </td>
-  </tr>
-  <?php endforeach; ?>
-  <?php if (!$rows): ?><tr><td colspan="6" class="muted">Belum ada device.</td></tr><?php endif; ?>
-</table>
+
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Device ID</th><th>Status</th><th>Trial s/d</th><th>Langganan s/d</th><th>Terakhir aktif</th><th style="width:280px">Aksi cepat</th></tr></thead>
+    <tbody>
+      <?php foreach ($rows as $r): $s = deviceStatus($r); ?>
+      <tr>
+        <td><a class="mono" href="device_view.php?id=<?= (int) $r['id'] ?>"><?= h($r['device_id']) ?></a></td>
+        <td><span class="pill" style="background:<?= deviceStatusColor($s) ?>"><?= $s ?></span></td>
+        <td class="muted"><?= h($r['trial_expires_at'] ?? '-') ?></td>
+        <td class="muted"><?= h($r['subscription_expires_at'] ?? '-') ?></td>
+        <td class="muted"><?= h($r['last_seen'] ?? '-') ?></td>
+        <td>
+          <form class="inline row-inline" method="post" style="gap:6px">
+            <input type="hidden" name="csrf" value="<?= $csrf ?>">
+            <input type="hidden" name="id" value="<?= (int) $r['id'] ?>">
+            <input type="hidden" name="q" value="<?= h($q) ?>"><input type="hidden" name="status" value="<?= h($status) ?>">
+            <input type="hidden" name="from" value="<?= h($from) ?>"><input type="hidden" name="page" value="<?= $page ?>">
+            <input type="number" name="days" value="30" min="1" style="width:62px"><span class="muted">hr</span>
+            <button class="btn-sm" name="action" value="extend">Aktifkan</button>
+            <button class="btn-ghost btn-sm" name="action" value="revoke">Cabut</button>
+            <?php if ($r['status'] === 'banned'): ?>
+              <button class="btn-sm" name="action" value="unban">Unban</button>
+            <?php else: ?>
+              <button class="btn-danger btn-sm" name="action" value="ban">Ban</button>
+            <?php endif; ?>
+          </form>
+        </td>
+      </tr>
+      <?php endforeach; ?>
+    </tbody>
+  </table>
+</div>
+<?php if (!$rows): ?>
+  <div class="empty"><i data-lucide="users"></i><div>Belum ada device cocok.</div></div>
+<?php endif; ?>
+
+<div class="row-inline" style="justify-content:space-between;margin-top:14px">
+  <span class="muted">Total <?= $total ?> device</span>
+  <div class="row-inline">
+    <?php if ($page > 1): ?><a class="btn btn-ghost btn-sm" href="<?= h(devLink(['page' => $page - 1])) ?>">‹</a><?php endif; ?>
+    <span class="muted">Hal <?= $page ?>/<?= $pages ?></span>
+    <?php if ($page < $pages): ?><a class="btn btn-ghost btn-sm" href="<?= h(devLink(['page' => $page + 1])) ?>">›</a><?php endif; ?>
+  </div>
+</div>
 <?php
 layout_footer();
