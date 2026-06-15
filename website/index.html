@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Berlangganan — Rembuk TV</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+         background: #0b0d12; color: #eceff4; line-height: 1.5; }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 24px 18px 48px; }
+  h1 { font-size: 24px; margin: 8px 0 4px; }
+  .sub { color: #9aa0aa; margin-top: 0; }
+  .card { background: #161a22; border: 1px solid #232834; border-radius: 14px; padding: 18px; margin: 16px 0; }
+  .plan { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #232834; }
+  .plan:last-child { border-bottom: 0; }
+  .plan b { font-size: 16px; }
+  .price { color: #6fcf97; font-weight: 700; }
+  ol { padding-left: 20px; } ol li { margin: 6px 0; }
+  .device { font-family: ui-monospace, Menlo, Consolas, monospace; background: #11141b; border: 1px dashed #2c3340;
+            border-radius: 10px; padding: 12px; word-break: break-all; color: #cdd3df; }
+  .wa { display: block; text-align: center; background: #25d366; color: #06281a; font-weight: 700;
+        text-decoration: none; padding: 14px; border-radius: 12px; margin-top: 14px; font-size: 16px; }
+  .muted { color: #9aa0aa; font-size: 13px; }
+  .badge { display:inline-block; background:#2d6cdf; color:#fff; border-radius:999px; padding:2px 10px; font-size:12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="badge">Rembuk TV</span>
+  <h1>Berlangganan Premium</h1>
+  <p class="sub">Buka semua channel tanpa batas. Aktivasi manual via WhatsApp admin.</p>
+
+  <div class="card">
+    <h3 style="margin-top:0">Paket</h3>
+    <div class="plan"><b>1 Bulan</b><span class="price">Rp —</span></div>
+    <div class="plan"><b>3 Bulan</b><span class="price">Rp —</span></div>
+    <div class="plan"><b>12 Bulan</b><span class="price">Rp —</span></div>
+    <p class="muted">* Harga diisi oleh admin. Pembayaran via QRIS / transfer (info saat chat admin).</p>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Cara berlangganan</h3>
+    <ol>
+      <li>Salin <b>Device ID</b> kamu di bawah.</li>
+      <li>Tekan tombol <b>Chat Admin (WhatsApp)</b>.</li>
+      <li>Pilih paket & lakukan pembayaran sesuai arahan admin.</li>
+      <li>Admin mengaktifkan langganan untuk Device ID kamu. Selesai!</li>
+    </ol>
+    <p class="muted">Device ID kamu:</p>
+    <div class="device" id="device">memuat…</div>
+    <a class="wa" id="wa" href="#">Chat Admin (WhatsApp)</a>
+  </div>
+
+  <p class="muted">Butuh bantuan? Hubungi admin lewat tombol di atas.</p>
+</div>
+
+<script>
+  // GANTI dengan nomor WhatsApp admin (format internasional tanpa +, mis. 62812xxxxxxx).
+  var WA_NUMBER = "628xxxxxxxxxx";
+
+  var params = new URLSearchParams(location.search);
+  var device = params.get("device") || "(tidak terdeteksi — buka dari dalam aplikasi)";
+  document.getElementById("device").textContent = device;
+
+  var msg = "Halo admin Rembuk TV, saya mau berlangganan.\n\nDevice ID: " + device;
+  document.getElementById("wa").href =
+    "https://wa.me/" + WA_NUMBER + "?text=" + encodeURIComponent(msg);
+</script>
+</body>
+</html>
