@@ -9,17 +9,22 @@ if (currentAdmin() !== null) {
 
 $err = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = trim((string) post('email'));
-    $pass = (string) post('password');
-    $st = pdo()->prepare('SELECT * FROM admins WHERE email = ?');
-    $st->execute([$email]);
-    $a = $st->fetch();
-    if ($a && password_verify($pass, $a['password_hash'])) {
-        session_regenerate_id(true);
-        $_SESSION['admin'] = ['id' => (int) $a['id'], 'email' => $a['email'], 'role' => $a['role'] ?? 'admin'];
-        redirect('dashboard.php');
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '0';
+    if (!\Enyak\RateLimiter::allow("login:$ip", 10, 300)) {
+        $err = 'Terlalu banyak percobaan login. Coba lagi beberapa menit.';
+    } else {
+        $email = trim((string) post('email'));
+        $pass = (string) post('password');
+        $st = pdo()->prepare('SELECT * FROM admins WHERE email = ?');
+        $st->execute([$email]);
+        $a = $st->fetch();
+        if ($a && password_verify($pass, $a['password_hash'])) {
+            session_regenerate_id(true);
+            $_SESSION['admin'] = ['id' => (int) $a['id'], 'email' => $a['email'], 'role' => $a['role'] ?? 'admin'];
+            redirect('dashboard.php');
+        }
+        $err = 'Email atau password salah.';
     }
-    $err = 'Email atau password salah.';
 }
 
 layout_header('Masuk');

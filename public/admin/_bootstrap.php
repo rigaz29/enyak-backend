@@ -15,6 +15,13 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
+// Basic security headers for every admin page.
+if (!headers_sent()) {
+    header('X-Content-Type-Options: nosniff');
+    header('X-Frame-Options: DENY');
+    header('Referrer-Policy: same-origin');
+}
+
 function pdo(): \PDO
 {
     return Db::conn();
