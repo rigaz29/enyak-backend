@@ -15,7 +15,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim((string) post('email'));
     $pass = (string) post('password');
     if ($email !== '' && strlen($pass) >= 8) {
-        pdo()->prepare('INSERT INTO admins (email, password_hash) VALUES (?, ?)')
+        // First admin is the superadmin (can manage other admins).
+        pdo()->prepare('INSERT INTO admins (email, password_hash, role) VALUES (?, ?, "superadmin")')
             ->execute([$email, password_hash($pass, PASSWORD_BCRYPT)]);
         redirect('login.php');
     }

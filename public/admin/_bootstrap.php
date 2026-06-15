@@ -45,6 +45,20 @@ function requireAdmin(): array
     return $a;
 }
 
+function isSuperadmin(): bool
+{
+    return (currentAdmin()['role'] ?? '') === 'superadmin';
+}
+
+function requireSuperadmin(): void
+{
+    requireAdmin();
+    if (!isSuperadmin()) {
+        http_response_code(403);
+        exit('Akses ditolak — khusus superadmin.');
+    }
+}
+
 function csrfToken(): string
 {
     if (empty($_SESSION['csrf'])) {

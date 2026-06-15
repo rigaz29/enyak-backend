@@ -54,12 +54,16 @@ function layout_header(string $title): void
     <aside class="sidebar" :class="sidebarOpen && 'open'">
       <div class="brand"><span class="dot"><i data-lucide="tv"></i></span> Enyak Admin</div>
       <nav class="nav">
+        <a href="dashboard.php" class="<?= navActive('dashboard.php') ?>"><i data-lucide="layout-dashboard"></i> Dashboard</a>
         <a href="devices.php" class="<?= navActive('devices.php') ?>"><i data-lucide="users"></i> Devices</a>
         <a href="channels.php" class="<?= navActive('channels.php') ?>"><i data-lucide="tv"></i> Channels</a>
         <a href="import.php" class="<?= navActive('import.php') ?>"><i data-lucide="upload"></i> Import M3U</a>
+        <a href="settings.php" class="<?= navActive('settings.php') ?>"><i data-lucide="settings"></i> Settings</a>
+        <?php if (isSuperadmin()): ?><a href="admins.php" class="<?= navActive('admins.php') ?>"><i data-lucide="shield"></i> Admins</a><?php endif; ?>
       </nav>
       <div class="sidebar-foot">
-        <a href="logout.php" class="nav-foot" style="color:var(--muted);display:flex;gap:11px;padding:10px 12px"><i data-lucide="log-out"></i> Keluar</a>
+        <a href="profile.php" style="color:var(--muted);display:flex;gap:11px;padding:10px 12px"><i data-lucide="user"></i> Profil</a>
+        <a href="logout.php" style="color:var(--muted);display:flex;gap:11px;padding:10px 12px"><i data-lucide="log-out"></i> Keluar</a>
       </div>
     </aside>
 

@@ -16,8 +16,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $a = $st->fetch();
     if ($a && password_verify($pass, $a['password_hash'])) {
         session_regenerate_id(true);
-        $_SESSION['admin'] = ['id' => (int) $a['id'], 'email' => $a['email']];
-        redirect('devices.php');
+        $_SESSION['admin'] = ['id' => (int) $a['id'], 'email' => $a['email'], 'role' => $a['role'] ?? 'admin'];
+        redirect('dashboard.php');
     }
     $err = 'Email atau password salah.';
 }
