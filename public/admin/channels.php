@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash('Status channel diubah.');
         } elseif ($op === 'toggle_free') {
             $pdo->prepare('UPDATE channels SET is_free = 1 - is_free WHERE id = ?')->execute([$id]);
-            flash('Free/Premium channel diubah.');
+            flash('Akses channel (Gratis/Donasi) diubah.');
         }
     } elseif (post('bulk') !== null) {
         $op = (string) post('op');
@@ -145,8 +145,8 @@ $csrf = csrfToken();
       </select>
       <select name="premium" style="max-width:130px">
         <option value="">Free & Paid</option>
-        <option value="free" <?= $premium === 'free' ? 'selected' : '' ?>>Free</option>
-        <option value="paid" <?= $premium === 'paid' ? 'selected' : '' ?>>Premium</option>
+        <option value="free" <?= $premium === 'free' ? 'selected' : '' ?>>Gratis</option>
+        <option value="paid" <?= $premium === 'paid' ? 'selected' : '' ?>>Donasi</option>
       </select>
       <noscript><button class="btn-ghost">Filter</button></noscript>
     </form>
@@ -166,8 +166,8 @@ $csrf = csrfToken();
     <select name="op" style="max-width:180px">
       <option value="enable">Aktifkan</option>
       <option value="disable">Nonaktifkan</option>
-      <option value="free">Jadikan Free</option>
-      <option value="paid">Jadikan Premium</option>
+      <option value="free">Jadikan Gratis</option>
+      <option value="paid">Jadikan Donasi</option>
       <option value="delete">Hapus</option>
     </select>
     <button name="bulk" value="1" @click="return confirm('Terapkan ke ' + checked.length + ' channel?')">Terapkan</button>
@@ -189,12 +189,12 @@ $csrf = csrfToken();
           <td><?= h($r['name']) ?></td>
           <td class="muted"><?= h($r['group_title'] ?? '-') ?></td>
           <td><span class="badge badge-soft"><?= h($r['stream_type']) ?></span></td>
-          <td><span class="pill" style="background:<?= $r['is_free'] ? '#616161' : '#2e7d32' ?>"><?= $r['is_free'] ? 'Free' : 'Premium' ?></span></td>
+          <td><span class="pill" style="background:<?= $r['is_free'] ? '#616161' : '#2e7d32' ?>"><?= $r['is_free'] ? 'Gratis' : 'Donasi' ?></span></td>
           <td><span class="pill" style="background:<?= $r['is_enabled'] ? '#2d6cdf' : '#c0392b' ?>"><?= $r['is_enabled'] ? 'Aktif' : 'Nonaktif' ?></span></td>
           <td class="muted"><?= h($r['drm_scheme'] ?? '') ?></td>
           <td class="row-inline">
             <a href="channel_edit.php?id=<?= (int) $r['id'] ?>"><button type="button" class="btn-ghost btn-sm"><i data-lucide="pencil"></i></button></a>
-            <button class="btn-ghost btn-sm" name="row" value="toggle_free:<?= (int) $r['id'] ?>"><?= $r['is_free'] ? 'Premium' : 'Free' ?></button>
+            <button class="btn-ghost btn-sm" name="row" value="toggle_free:<?= (int) $r['id'] ?>"><?= $r['is_free'] ? 'Donasi' : 'Gratis' ?></button>
             <button class="btn-ghost btn-sm" name="row" value="toggle_enabled:<?= (int) $r['id'] ?>"><?= $r['is_enabled'] ? 'Off' : 'On' ?></button>
             <button class="btn-danger btn-sm" name="row" value="delete:<?= (int) $r['id'] ?>" @click="return confirm('Hapus channel ini?')"><i data-lucide="trash-2"></i></button>
           </td>

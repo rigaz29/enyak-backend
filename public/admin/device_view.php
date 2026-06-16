@@ -32,7 +32,7 @@ $csrf = csrfToken();
 <div class="grid cols-4">
   <div class="card stat"><span class="lbl">Status</span><span class="num"><span class="pill" style="background:<?= deviceStatusColor($s) ?>;font-size:16px"><?= $s ?></span></span></div>
   <div class="card stat"><span class="lbl">Trial s/d</span><span class="num" style="font-size:15px"><?= h($d['trial_expires_at'] ?? '-') ?></span></div>
-  <div class="card stat"><span class="lbl">Langganan s/d</span><span class="num" style="font-size:15px"><?= h($d['subscription_expires_at'] ?? '-') ?></span></div>
+  <div class="card stat"><span class="lbl">Donasi s/d</span><span class="num" style="font-size:15px"><?= h($d['subscription_expires_at'] ?? '-') ?></span></div>
   <div class="card stat"><span class="lbl">Terakhir aktif</span><span class="num" style="font-size:15px"><?= h($d['last_seen'] ?? '-') ?></span></div>
 </div>
 
@@ -46,13 +46,13 @@ $csrf = csrfToken();
 </div>
 
 <div class="card">
-  <h3>Aktivasi langganan</h3>
+  <h3>Aktivasi donatur</h3>
   <form class="row-inline" method="post">
     <input type="hidden" name="csrf" value="<?= $csrf ?>">
     <input type="hidden" name="id" value="<?= $id ?>">
     <input type="number" name="days" value="30" min="1" style="width:90px"><span class="muted">hari</span>
     <button name="action" value="extend"><i data-lucide="check"></i> Aktifkan / Perpanjang</button>
-    <button class="btn-ghost" name="action" value="revoke">Cabut langganan</button>
+    <button class="btn-ghost" name="action" value="revoke">Cabut akses donatur</button>
     <?php if ($d['status'] === 'banned'): ?>
       <button name="action" value="unban">Unban</button>
     <?php else: ?>

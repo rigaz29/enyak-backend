@@ -7,7 +7,7 @@ $pdo = pdo();
 
 // Editable remote-config keys (stored in the settings table).
 $fields = [
-    ['k' => 'website_url',         'label' => 'URL Website Langganan', 'type' => 'text'],
+    ['k' => 'website_url',         'label' => 'URL Website Donasi',    'type' => 'text'],
     ['k' => 'promo_video_url',     'label' => 'URL Video Promo',       'type' => 'text'],
     ['k' => 'min_app_version',     'label' => 'Min Versi App (force update)', 'type' => 'text'],
     ['k' => 'update_url',          'label' => 'URL Update App',         'type' => 'text'],

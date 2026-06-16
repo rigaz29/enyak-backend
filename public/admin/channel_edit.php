@@ -95,8 +95,8 @@ $csrf = csrfToken();
       <div class="field" style="flex:1">
         <label>Akses</label>
         <select name="is_free">
-          <option value="0" <?= (($ch['is_free'] ?? 0) == 0) ? 'selected' : '' ?>>Premium (berbayar)</option>
-          <option value="1" <?= (($ch['is_free'] ?? 0) == 1) ? 'selected' : '' ?>>Free (gratis)</option>
+          <option value="0" <?= (($ch['is_free'] ?? 0) == 0) ? 'selected' : '' ?>>Donasi (khusus donatur)</option>
+          <option value="1" <?= (($ch['is_free'] ?? 0) == 1) ? 'selected' : '' ?>>Gratis</option>
         </select>
       </div>
       <div class="field" style="flex:1">

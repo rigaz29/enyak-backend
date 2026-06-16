@@ -171,11 +171,11 @@ function applyDeviceAction(\PDO $pdo, int $id, string $action, int $days = 30): 
         $new = date('Y-m-d H:i:s', $base + max(1, $days) * 86400);
         $pdo->prepare('UPDATE devices SET subscription_expires_at = ?, status = "active" WHERE id = ?')->execute([$new, $id]);
         logActivation($pdo, $id, 'extend', $d['subscription_expires_at'], $new);
-        flash('Langganan diperpanjang sampai ' . $new . '.');
+        flash('Akses donatur diperpanjang sampai ' . $new . '.');
     } elseif ($action === 'revoke') {
         $pdo->prepare('UPDATE devices SET subscription_expires_at = NULL WHERE id = ?')->execute([$id]);
         logActivation($pdo, $id, 'revoke', $d['subscription_expires_at'], null);
-        flash('Langganan dicabut.');
+        flash('Akses donatur dicabut.');
     } elseif ($action === 'ban') {
         $pdo->prepare('UPDATE devices SET status = "banned" WHERE id = ?')->execute([$id]);
         logActivation($pdo, $id, 'ban', null, null);

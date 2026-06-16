@@ -38,7 +38,7 @@ layout_header('Dashboard');
 ?>
 <div class="grid cols-4">
   <div class="card stat"><span class="lbl">Total Device</span><span class="num"><?= number_format($totalDev) ?></span></div>
-  <div class="card stat"><span class="lbl">Device Aktif (premium/trial)</span><span class="num" style="color:var(--success)"><?= number_format($activeDev) ?></span></div>
+  <div class="card stat"><span class="lbl">Device Aktif (donatur/trial)</span><span class="num" style="color:var(--success)"><?= number_format($activeDev) ?></span></div>
   <div class="card stat"><span class="lbl">Total Channel</span><span class="num"><?= number_format($totalCh) ?></span></div>
   <div class="card stat"><span class="lbl">Channel Aktif</span><span class="num"><?= number_format($activeCh) ?></span></div>
 </div>

@@ -89,7 +89,7 @@ $csrf = csrfToken();
       <input type="search" name="q" value="<?= h($q) ?>" data-autofocus placeholder="Cari Device ID…" style="max-width:240px">
       <select name="status" style="max-width:150px">
         <option value="">Semua status</option>
-        <?php foreach (['premium' => 'Premium', 'trial' => 'Trial', 'free' => 'Free', 'banned' => 'Banned'] as $k => $lbl): ?>
+        <?php foreach (['premium' => 'Donatur', 'trial' => 'Trial', 'free' => 'Gratis', 'banned' => 'Banned'] as $k => $lbl): ?>
           <option value="<?= $k ?>" <?= $status === $k ? 'selected' : '' ?>><?= $lbl ?></option>
         <?php endforeach; ?>
       </select>
@@ -103,7 +103,7 @@ $csrf = csrfToken();
 
 <div class="table-wrap">
   <table>
-    <thead><tr><th>Device ID</th><th>Status</th><th>Trial s/d</th><th>Langganan s/d</th><th>Terakhir aktif</th><th style="width:280px">Aksi cepat</th></tr></thead>
+    <thead><tr><th>Device ID</th><th>Status</th><th>Trial s/d</th><th>Donasi s/d</th><th>Terakhir aktif</th><th style="width:280px">Aksi cepat</th></tr></thead>
     <tbody>
       <?php foreach ($rows as $r): $s = deviceStatus($r); ?>
       <tr>
