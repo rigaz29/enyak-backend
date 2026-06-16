@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Berlangganan — Rembuk TV</title>
+<title>Donasi — Rembuk TV</title>
 <style>
   :root { color-scheme: dark; }
   * { box-sizing: border-box; }
@@ -29,24 +29,24 @@
 <body>
 <div class="wrap">
   <span class="badge">Rembuk TV</span>
-  <h1>Berlangganan Premium</h1>
-  <p class="sub">Buka semua channel tanpa batas. Aktivasi manual via WhatsApp admin.</p>
+  <h1>Donasi Rembuk TV</h1>
+  <p class="sub">Dukung Rembuk TV dengan berdonasi & buka semua channel donasi. Aktivasi manual via WhatsApp admin.</p>
 
   <div class="card">
-    <h3 style="margin-top:0">Paket</h3>
+    <h3 style="margin-top:0">Pilihan Donasi</h3>
     <div class="plan"><b>1 Bulan</b><span class="price">Rp —</span></div>
     <div class="plan"><b>3 Bulan</b><span class="price">Rp —</span></div>
     <div class="plan"><b>12 Bulan</b><span class="price">Rp —</span></div>
-    <p class="muted">* Harga diisi oleh admin. Pembayaran via QRIS / transfer (info saat chat admin).</p>
+    <p class="muted">* Nominal diisi oleh admin. Donasi via QRIS / transfer (info saat chat admin).</p>
   </div>
 
   <div class="card">
-    <h3 style="margin-top:0">Cara berlangganan</h3>
+    <h3 style="margin-top:0">Cara berdonasi</h3>
     <ol>
       <li>Salin <b>Device ID</b> kamu di bawah.</li>
       <li>Tekan tombol <b>Chat Admin (WhatsApp)</b>.</li>
-      <li>Pilih paket & lakukan pembayaran sesuai arahan admin.</li>
-      <li>Admin mengaktifkan langganan untuk Device ID kamu. Selesai!</li>
+      <li>Pilih nominal donasi & lakukan pembayaran sesuai arahan admin.</li>
+      <li>Admin mengaktifkan akses donatur untuk Device ID kamu. Selesai!</li>
     </ol>
     <p class="muted">Device ID kamu:</p>
     <div class="device" id="device">memuat…</div>
@@ -54,6 +54,11 @@
   </div>
 
   <p class="muted">Butuh bantuan? Hubungi admin lewat tombol di atas.</p>
+  <p class="muted" style="text-align:center;margin-top:24px">
+    <a style="color:#9aa0aa" href="privacy.html">Kebijakan Privasi</a> ·
+    <a style="color:#9aa0aa" href="terms.html">Syarat &amp; Ketentuan</a> ·
+    <a style="color:#9aa0aa" href="disclaimer.html">Disclaimer</a>
+  </p>
 </div>
 
 <script>
@@ -64,7 +69,7 @@
   var device = params.get("device") || "(tidak terdeteksi — buka dari dalam aplikasi)";
   document.getElementById("device").textContent = device;
 
-  var msg = "Halo admin Rembuk TV, saya mau berlangganan.\n\nDevice ID: " + device;
+  var msg = "Halo admin Rembuk TV, saya mau berdonasi.\n\nDevice ID: " + device;
   document.getElementById("wa").href =
     "https://wa.me/" + WA_NUMBER + "?text=" + encodeURIComponent(msg);
 </script>
