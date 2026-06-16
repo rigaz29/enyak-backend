@@ -39,6 +39,9 @@ $csrf = csrfToken();
 <div class="card">
   <h3>Device</h3>
   <p class="mono"><?= h($d['device_id']) ?></p>
+  <p class="muted">Model: <?= h($d['device_model'] ?? '-') ?></p>
+  <p class="muted">OS: <?= h($d['os_version'] ?? '-') ?> &nbsp;•&nbsp; App: <?= h($d['app_version'] ?? '-') ?></p>
+  <p class="muted">IP terakhir: <?= h($d['last_ip'] ?? '-') ?></p>
   <p class="muted">Terdaftar: <?= h($d['created_at'] ?? '-') ?></p>
 </div>
 

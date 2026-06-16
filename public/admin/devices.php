@@ -29,11 +29,12 @@ if (query('export') === 'csv') {
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename="enyak-devices.csv"');
     $out = fopen('php://output', 'w');
-    fputcsv($out, ['device_id', 'status', 'trial_expires_at', 'subscription_expires_at', 'last_seen', 'created_at', 'note_admin']);
+    fputcsv($out, ['device_id', 'status', 'trial_expires_at', 'subscription_expires_at', 'last_seen', 'created_at', 'device_model', 'app_version', 'os_version', 'last_ip', 'note_admin']);
     foreach ($st as $r) {
         fputcsv($out, [
             $r['device_id'], deviceStatus($r), $r['trial_expires_at'], $r['subscription_expires_at'],
-            $r['last_seen'], $r['created_at'], $r['note_admin'],
+            $r['last_seen'], $r['created_at'], $r['device_model'] ?? '', $r['app_version'] ?? '',
+            $r['os_version'] ?? '', $r['last_ip'] ?? '', $r['note_admin'],
         ]);
     }
     fclose($out);

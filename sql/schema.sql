@@ -11,6 +11,10 @@ CREATE TABLE IF NOT EXISTS devices (
   subscription_expires_at DATETIME NULL,
   note_admin              VARCHAR(255) NULL,
   last_seen               DATETIME NULL,
+  device_model            VARCHAR(191) NULL,
+  app_version             VARCHAR(32) NULL,
+  os_version              VARCHAR(32) NULL,
+  last_ip                 VARCHAR(64) NULL,
   created_at              DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

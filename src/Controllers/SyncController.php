@@ -24,12 +24,18 @@ final class SyncController
             Response::error('Invalid deviceId', 422);
         }
         $clientCatalog = (string) ($body['catalogVersion'] ?? '');
+        $info = [
+            'model' => self::clip((string) ($body['deviceModel'] ?? ''), 191),
+            'app'   => self::clip((string) ($body['appVersion'] ?? ''), 32),
+            'os'    => self::clip((string) ($body['osVersion'] ?? ''), 32),
+            'ip'    => self::clientIp(),
+        ];
 
         $pdo      = Db::conn();
         $now      = time();
         $settings = self::settings($pdo);
 
-        $dev = self::upsertDevice($pdo, $deviceId, (int) ($settings['trial_seconds'] ?? 3600), $now);
+        $dev = self::upsertDevice($pdo, $deviceId, (int) ($settings['trial_seconds'] ?? 3600), $now, $info);
         [$status, $expiresAt, $entitled] = self::entitlement($dev, $now);
 
         if ($status === 'banned') {
@@ -58,20 +64,39 @@ final class SyncController
         ]);
     }
 
-    private static function upsertDevice(PDO $pdo, string $deviceId, int $trialSeconds, int $now): array
+    private static function upsertDevice(PDO $pdo, string $deviceId, int $trialSeconds, int $now, array $info): array
     {
         $row = self::findDevice($pdo, $deviceId);
         if ($row === null) {
             $trialExpires = date('Y-m-d H:i:s', $now + $trialSeconds);
             $pdo->prepare(
-                'INSERT INTO devices (device_id, status, trial_expires_at, last_seen, created_at)
-                 VALUES (?, "active", ?, NOW(), NOW())'
-            )->execute([$deviceId, $trialExpires]);
+                'INSERT INTO devices (device_id, status, trial_expires_at, last_seen, created_at,
+                 device_model, app_version, os_version, last_ip)
+                 VALUES (?, "active", ?, NOW(), NOW(), ?, ?, ?, ?)'
+            )->execute([$deviceId, $trialExpires, $info['model'], $info['app'], $info['os'], $info['ip']]);
             $row = self::findDevice($pdo, $deviceId);
         } else {
-            $pdo->prepare('UPDATE devices SET last_seen = NOW() WHERE id = ?')->execute([$row['id']]);
+            $pdo->prepare(
+                'UPDATE devices SET last_seen = NOW(), device_model = ?, app_version = ?, os_version = ?, last_ip = ?
+                 WHERE id = ?'
+            )->execute([$info['model'], $info['app'], $info['os'], $info['ip'], $row['id']]);
         }
         return $row;
+    }
+
+    private static function clip(string $s, int $max): ?string
+    {
+        $s = trim($s);
+        return $s === '' ? null : mb_substr($s, 0, $max);
+    }
+
+    private static function clientIp(): string
+    {
+        $xff = (string) ($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '');
+        if ($xff !== '') {
+            return trim(explode(',', $xff)[0]);
+        }
+        return (string) ($_SERVER['REMOTE_ADDR'] ?? '');
     }
 
     private static function findDevice(PDO $pdo, string $deviceId): ?array
